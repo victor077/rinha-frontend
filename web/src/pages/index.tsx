@@ -20,6 +20,7 @@ export default function Home() {
     setLoading(true)
     setTitle(titleJSON)
     console.log("entrei aqui", selectedFile);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       console.log("entrei no reader", e);
@@ -46,56 +47,7 @@ export default function Home() {
     reader.readAsText(selectedFile);
     // console.log(selectedFile);
   }
-  function renderStyledJSON(json: object) {
-    return (
-      <pre>
-        {renderObject(json, 0,)}
-      </pre>
-    )
-  }
 
-  function renderObject(obj: any, depth: any) {
-    const isObject = typeof obj === 'object';
-    return (
-      <div style={{ marginLeft: `${depth * 5}px` }}>
-        {isObject && !Array.isArray(obj) ? (
-          <span style={{ color: '#F2CAB8' }}> &#123; </span>
-        ) : null}
-        {Array.isArray(obj) ? (
-          <span style={{ color: '#F2CAB8' }}> [ </span>
-        ) : null}
-        {isObject && !Array.isArray(obj) ? (
-          Object.entries(obj).map(([key, value]) => (
-            <div key={key}>
-              <span style={{ color: '#4E9590' }}>{JSON.stringify(key)}:</span>
-              {typeof value === 'object' ? (
-                renderObject(value, depth + 1) // Objeto aninhado
-              ) : (
-                <span style={{ color: '#000000' }}>{JSON.stringify(value)}</span>
-              )}
-            </div>
-          ))
-        ) : null}
-        {Array.isArray(obj) ? (
-          obj.map((value, index) => (
-            <div key={index}>
-              {typeof value === 'object' ? (
-                renderObject(value, depth + 1) // Objeto aninhado
-              ) : (
-                <span style={{ color: '#000000' }}>{JSON.stringify(value)}</span>
-              )}
-            </div>
-          ))
-        ) : null}
-        {isObject && !Array.isArray(obj) ? (
-          <span style={{ color: '#F2CAB8' }}> &#125; </span>
-        ) : null}
-        {Array.isArray(obj) ? (
-          <span style={{ color: '#F2CAB8' }}> ] </span>
-        ) : null}
-      </div>
-    );
-  }
 
   return (
     <main
@@ -110,8 +62,8 @@ export default function Home() {
         ) : (
           fileJson ? (
             <>
-              {renderStyledJSON(fileJson)}
-              <p className='font-bold text-2xl text-black'>{title}</p>
+              <p className='font-bold text-2xl text-black mt-2'>{title}</p>
+              <pre>{JSON.stringify(fileJson, null, 2)}</pre>
             </>
           ) : (
             <div className='flex flex-col gap-6'>
