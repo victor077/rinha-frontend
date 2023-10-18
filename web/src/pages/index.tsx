@@ -1,5 +1,6 @@
+"use client"
 import { Inter } from 'next/font/google'
-import { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useRef, useState } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -8,6 +9,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [errorFile, setErrorFile] = useState<string | null>("")
   const [title, setTitle] = useState("")
+  const workerRef = useRef<Worker>()
 
   function handleFileJson(event: ChangeEvent<HTMLInputElement>) {
     const { files } = event.currentTarget
@@ -19,37 +21,33 @@ export default function Home() {
     const titleJSON = selectedFile.name
     setLoading(true)
     setTitle(titleJSON)
-    console.log("entrei aqui", selectedFile);
-    
+    readerJsonView(selectedFile)
+  }
+
+  async function readerJsonView(selectedFile: File) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      console.log("entrei no reader", e);
       const content = e.target?.result as string
-      try {
-        console.log("carregando...");
-        const parsedJson = JSON.parse(content)
-        if (typeof parsedJson === 'object') {
-          setFileJson(parsedJson);
-          console.log(parsedJson);
-        } else {
-          setErrorFile("Invalid file. Please load a valid JSON file.")
-          console.log("O arquivo JSON não está formatado corretamente.");
+      console.log("teste", content);
+      workerRef.current = new Worker(new URL('../../worker.ts', import.meta.url))
+      workerRef.current.addEventListener('message', function (event: MessageEvent) {
+        const { result, error } = event.data;
+        setLoading(false)
+        if (result) {
+          setFileJson(result)
         }
+        else if (error)
+          console.log("resultado final", result);
 
-      } catch (error) {
-        setErrorFile("Invalid file. Please load a valid JSON file.")
-        console.error("Erro ao analisar o JSON:", error);
-      }
-      finally {
-        setLoading(false); // Desativar o indicador de carregamento, independente do resultado
-      }
+      })
+      workerRef.current.postMessage({ result: content })
     }
-    reader.readAsText(selectedFile);
-    // console.log(selectedFile);
+    return await reader.readAsText(selectedFile);
   }
 
 
   return (
+
     <main
       className={`flex min-h-screen flex-col items-center gap-6 p-24 justify-center ${inter.className}`}
     >
